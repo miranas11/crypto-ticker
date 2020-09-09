@@ -1,8 +1,9 @@
-import 'package:bitcoin_ticker/coin_data.dart';
+import 'package:bitcoin_ticker/Utilities/coin_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:io';
-import 'services/exchange.dart';
+import '../services/exchange.dart';
+import '../Utilities/ResusableCard.dart';
 
 class PriceScreen extends StatefulWidget {
   @override
@@ -11,8 +12,8 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String crypto = 'BTC';
-  String selectedCurrency = 'USD';
-  double rate = 0;
+  String selectedCurrency = 'AUD';
+  List<double> convertedData = [0, 0, 0];
 
   Widget getCupertinoPicker() {
     List<Text> pickeritems = [];
@@ -65,16 +66,17 @@ class _PriceScreenState extends State<PriceScreen> {
   }
 
   void getUpdatedData() async {
+    int i = 0;
     Convertor cryptoConvertor = Convertor();
-    cryptoConvertor.getCurrencyandCrypto(selectedCurrency, crypto);
-    dynamic data = await cryptoConvertor.getConvertedData();
-    double rate1 = data['rate'];
-    setState(() {
-      rate = double.parse(
-        (rate1).toStringAsFixed(2),
-      );
-    });
-    print(rate);
+    for (String cryptoname in cryptoList) {
+      cryptoConvertor.getCurrencyandCrypto(selectedCurrency, cryptoname);
+      dynamic data = await cryptoConvertor.getConvertedData();
+      double convertedRate = data['rate'];
+      setState(() {
+        convertedData[i] = double.parse((convertedRate).toStringAsFixed(2));
+      });
+      i++;
+    }
   }
 
   @override
@@ -87,26 +89,26 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              ResuableCard(
+                selectedCurrency: selectedCurrency,
+                rate: convertedData[0],
+                crypto: cryptoList[0],
               ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = $rate $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
+              ResuableCard(
+                selectedCurrency: selectedCurrency,
+                rate: convertedData[1],
+                crypto: cryptoList[1],
               ),
-            ),
+              ResuableCard(
+                selectedCurrency: selectedCurrency,
+                rate: convertedData[2],
+                crypto: cryptoList[2],
+              ),
+            ],
           ),
           Container(
             height: 150.0,
